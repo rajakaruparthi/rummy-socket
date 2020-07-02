@@ -16,7 +16,7 @@ let playersCards = []
 let rooms = []
 let showCards = []
 
-
+let hostName = "ec2-18-218-235-26.us-east-2.compute.amazonaws.com";
 io.on("connection", socket => {
 
 
@@ -31,7 +31,7 @@ io.on("connection", socket => {
         // rooms[index++] = {"roomId": obj.roomId, "users": users};
         users[index++] = {'name': obj.name, 'folded': false};
 
-        axios.post('http://localhost:8102/api/get-room-by-id', {
+        axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
@@ -57,7 +57,7 @@ io.on("connection", socket => {
     // });
 
     socket.on("getRooms", obj => {
-        axios.post('http://localhost:8102/api/get-rooms', {
+        axios.post('http://'+hostName+':8102/api/get-rooms', {
             id: obj.roomId
         }).then((res) => {
             console.log(`statusCode: ${res.statusCode}`)
@@ -71,7 +71,7 @@ io.on("connection", socket => {
 
     socket.on("updateUsers", obj => {
         console.log(obj);
-        axios.post('http://localhost:8102/api/get-room-by-id', {
+        axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
             console.log(`statusCode: ${res.statusCode}`)
@@ -129,7 +129,7 @@ io.on("connection", socket => {
     });
 
     socket.on("deletePlayer", roomId => {
-        axios.post('http://localhost:8102/api/get-room-by-id', {
+        axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: roomId
         }).then((res) => {
             console.log(`statusCode: ${res.statusCode}`)
