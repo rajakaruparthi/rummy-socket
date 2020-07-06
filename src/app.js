@@ -13,24 +13,15 @@ let cards = []
 let deckArray = []
 let openCards = []
 let playersCards = []
-let rooms = []
-let showCards = []
 
 
 io.on("connection", socket => {
 
+    let distributeIndex = 0;
 
-    console.log(computerName())
-
-    let previousId;
 
     socket.on("addUser", obj => {
-
-        console.log("came in add user");
-        console.log(obj);
-        // rooms[index++] = {"roomId": obj.roomId, "users": users};
         users[index++] = {'name': obj.name, 'folded': false};
-
         axios.post('http://localhost:8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
@@ -38,29 +29,14 @@ io.on("connection", socket => {
         }).catch((error) => {
             console.error(error)
         });
-
-        // socket.to(obj.roomId).emit("users", users[obj.roomId]);
         io.emit("users", users);
+        io.emit("distributeIndex", distributeIndex%(users.length));
     });
-
-    // socket.on("createRoom", obj => {
-    //
-    //     axios.get('http://localhost:8102/api/get-rooms')
-    //         .then((res) => {
-    //         console.log(`statusCode: ${res.statusCode}`)
-    //         users = res.data.playersList;
-    //     }).catch((error) => {
-    //         console.error(error)
-    //     });
-    //
-    //    rooms.push()
-    // });
 
     socket.on("getRooms", obj => {
         axios.post('http://localhost:8102/api/get-rooms', {
             id: obj.roomId
         }).then((res) => {
-            console.log(`statusCode: ${res.statusCode}`)
             users = res.data.playersList;
         }).catch((error) => {
             console.error(error)
@@ -70,12 +46,11 @@ io.on("connection", socket => {
 
 
     socket.on("updateUsers", obj => {
-        console.log(obj);
         axios.post('http://localhost:8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
-            console.log(`statusCode: ${res.statusCode}`)
             users = res.data.playersList;
+            io.emit("users", users);
         }).catch((error) => {
             console.error(error)
         });
@@ -105,22 +80,26 @@ io.on("connection", socket => {
 
     socket.on("startGame", ary => {
         cards = ary;
-        playersCards = [];
+        console.log(cards);
+        console.log(distributeIndex);
         io.emit("users", users);
         io.emit("gameStarted", true);
         io.emit("declaredFlag", false);
         io.emit("cards", cards);
+        io.emit("currentIndex", (distributeIndex+1)%users.length);
+        io.emit("currentPlayer", users[(distributeIndex+1)%users.length]);
+
         for (let i = 0; i < users.length; i++) {
             playersCards[i] = { "cards" : cards[i].cards, "foldedFlag" :false, "playerName": cards[i].name};
         }
     });
 
-    socket.on("showCards", flag => {
+    socket.on("showCards", index => {
         io.emit("gameEnded", true);
-        io.emit("declaredFlag", flag);
-        console.log("---------------------- show cards -----------------------");
-        console.log(playersCards);
+        io.emit("declaredFlag", true);
         io.emit("finalShowCards", playersCards);
+        io.emit("winnerIndex" , index);
+        io.emit("winnerPlayer", playersCards[index].playerName);
     });
 
     socket.on("updateFinalCardsResponse", data => {
@@ -132,7 +111,6 @@ io.on("connection", socket => {
         axios.post('http://localhost:8102/api/get-room-by-id', {
             id: roomId
         }).then((res) => {
-            console.log(`statusCode: ${res.statusCode}`)
             users = res.data.playersList;
             io.emit("users", users);
         }).catch((error) => {
@@ -143,8 +121,6 @@ io.on("connection", socket => {
     socket.on("updatePlayersCards", ary => {
         let index = ary[0];
         playersCards[index] = { "cards" : ary[1], "foldedFlag" : users[index].folded, "playerName": users[index].name};
-        console.log("------------------------- update player cards --------------------");
-        console.log(playersCards);
     });
 
     socket.on("winnerIndexEmit", index => {
@@ -157,7 +133,6 @@ io.on("connection", socket => {
         currentIndex = currentIndex%len;
 
         if(users[currentIndex].folded) {
-            // skip this player
             currentIndex = currentIndex + 1;
             currentIndex = currentIndex%len;
         }
@@ -166,35 +141,21 @@ io.on("connection", socket => {
         io.emit("currentPlayer", users[currentIndex]);
     });
 
+    socket.on("continuePlaying", txt => {
+        distributeIndex++;
+        io.emit("distributeIndex", distributeIndex%(users.length));
+    });
+
 
     socket.on("updateIsFoldedFlag", index => {
         users[index].folded = true;
-        io.emit("users", users)
+        io.emit("users", users);
     });
 
-
-    socket.on("getDoc", docId => {
-        // safeJoin(docId);
-        socket.emit("document", documents[docId]);
-    });
-
-
-    socket.on("addDoc", doc => {
-        documents[doc.id] = doc;
-        // safeJoin(doc.id);
-        io.emit("documents", Object.keys(documents));
-        socket.emit("document", doc);
-    });
-
-    socket.on("editDoc", doc => {
-        documents[doc.id] = doc;
-        socket.to(doc.id).emit("document", doc);
-    });
-
-    io.emit("documents", Object.keys(documents));
     io.emit("users", users);
-    // io.emit("finalShowCards", playersCards);
-    // io.emit("showCards", showCards);
+    io.emit("startIndex", distributeIndex);
+    console.log("distributeIndex -- ", distributeIndex%(users.length));
+
 });
 
 http.listen(4444);
