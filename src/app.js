@@ -14,7 +14,7 @@ let deckArray = []
 let openCards = []
 let playersCards = []
 
-
+let hostName = "localhost";
 io.on("connection", socket => {
 
     let distributeIndex = 0;
@@ -22,7 +22,8 @@ io.on("connection", socket => {
 
     socket.on("addUser", obj => {
         users[index++] = {'name': obj.name, 'folded': false};
-        axios.post('http://localhost:8102/api/get-room-by-id', {
+
+        axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
@@ -34,7 +35,7 @@ io.on("connection", socket => {
     });
 
     socket.on("getRooms", obj => {
-        axios.post('http://localhost:8102/api/get-rooms', {
+        axios.post('http://'+hostName+':8102/api/get-rooms', {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
@@ -46,7 +47,8 @@ io.on("connection", socket => {
 
 
     socket.on("updateUsers", obj => {
-        axios.post('http://localhost:8102/api/get-room-by-id', {
+        console.log(obj);
+        axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
@@ -108,7 +110,7 @@ io.on("connection", socket => {
     });
 
     socket.on("deletePlayer", roomId => {
-        axios.post('http://localhost:8102/api/get-room-by-id', {
+        axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: roomId
         }).then((res) => {
             users = res.data.playersList;
