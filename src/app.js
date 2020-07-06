@@ -19,7 +19,6 @@ io.on("connection", socket => {
 
     let distributeIndex = 0;
 
-
     socket.on("addUser", obj => {
         users[index++] = {'name': obj.name, 'folded': false};
 
@@ -27,11 +26,13 @@ io.on("connection", socket => {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
+        }).then((res) => {
+            io.emit("users", users);
         }).catch((error) => {
             console.error(error)
         });
-        io.emit("users", users);
-        io.emit("distributeIndex", distributeIndex%(users.length));
+
+        if(users !== undefined){io.emit("distributeIndex", distributeIndex%(users.length));}
     });
 
     socket.on("getRooms", obj => {
@@ -39,6 +40,8 @@ io.on("connection", socket => {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
+        }).then((res) => {
+            io.emit("users", users);
         }).catch((error) => {
             console.error(error)
         });
@@ -52,6 +55,7 @@ io.on("connection", socket => {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
+        }).then((res) => {
             io.emit("users", users);
         }).catch((error) => {
             console.error(error)
@@ -156,7 +160,6 @@ io.on("connection", socket => {
 
     io.emit("users", users);
     io.emit("startIndex", distributeIndex);
-    console.log("distributeIndex -- ", distributeIndex%(users.length));
 
 });
 
