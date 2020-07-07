@@ -26,6 +26,7 @@ io.on("connection", socket => {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
+            io.emit("users", users);
         }).then((res) => {
             io.emit("users", users);
         }).catch((error) => {
@@ -122,6 +123,14 @@ io.on("connection", socket => {
         }).catch((error) => {
             console.error(error)
         });
+    });
+
+    socket.on("deletePlayerIndex", index => {
+        if(distributeIndex >= index) {
+            distributeIndex--;
+        }
+        playersCards.splice(index, 1);
+        io.emit("distributeIndex", distributeIndex);
     });
 
     socket.on("updatePlayersCards", ary => {
