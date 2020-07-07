@@ -15,7 +15,7 @@ let openCards = []
 let playersCards = []
 let roomIdNum;
 
-let hostName = "localhost";
+let hostName = "ec2-18-191-23-88.us-east-2.compute.amazonaws.com";
 io.on("connection", socket => {
 
     let distributeIndex = 0;
