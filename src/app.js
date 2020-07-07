@@ -22,11 +22,11 @@ io.on("connection", socket => {
     socket.on("addUser", obj => {
         users[index++] = {'name': obj.name, 'folded': false};
 
+        io.emit("users", users);
         axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
             users = res.data.playersList;
-            io.emit("users", users);
         }).then((res) => {
             io.emit("users", users);
         }).catch((error) => {
