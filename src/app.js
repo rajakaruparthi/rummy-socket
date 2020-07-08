@@ -14,15 +14,17 @@ let deckArray = []
 let openCards = []
 let playersCards = []
 let roomIdNum;
-
 let hostName = "localhost";
+let playerReadyArray = []
+
 io.on("connection", socket => {
 
     let distributeIndex = 0;
 
     socket.on("addUser", obj => {
+
         users[index++] = {'name': obj.name, 'folded': false};
-        roomIdNum = obj.roomId;
+
         axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: obj.roomId
         }).then((res) => {
@@ -37,7 +39,6 @@ io.on("connection", socket => {
     });
 
     socket.on("refreshUsers", roomId => {
-        roomIdNum = obj.roomId;
         axios.post('http://'+hostName+':8102/api/get-room-by-id', {
             id: roomId
         }).then((res) => {
@@ -101,17 +102,14 @@ io.on("connection", socket => {
 
 
     socket.on("startGame", ary => {
+        playerReadyArray = [];
         cards = ary;
-        // console.log(cards);
-        // console.log(distributeIndex);
-
         io.emit("users", users);
         io.emit("gameStarted", true);
         io.emit("declaredFlag", false);
         io.emit("cards", cards);
         io.emit("currentIndex", (distributeIndex+1)%users.length);
         io.emit("currentPlayer", users[(distributeIndex+1)%users.length]);
-
         for (let i = 0; i < users.length; i++) {
             playersCards[i] = { "cards" : cards[i].cards, "foldedFlag" :false, "playerName": cards[i].name};
         }
@@ -139,6 +137,11 @@ io.on("connection", socket => {
         }).catch((error) => {
             console.error(error)
         });
+    });
+
+    socket.on("readyForNextGame", playerName => {
+        playerReadyArray.push(playerName);
+        io.emit("playerReadyNameArray", playerReadyArray);
     });
 
     socket.on("deletePlayerIndex", index => {
